@@ -1,0 +1,13 @@
+6. Open the Markdown preview (`Ctrl+Shift+V` or `Ctrl+K V` for side preview)
+
+## Option 2: Mermaid Preview Extension
+Install **"Mermaid Preview"** by Sebastian Kessler for a dedicated preview window without Markdown wrapping.
+
+## Option 3: Online (No Installation)
+Paste your code directly into the [Mermaid Live Editor](https://mermaid.live) — it renders instantly in your browser and lets you export as PNG/SVG/PDF.
+
+## Option 4: Standalone File
+Save your code as `diagram.mmd` and use the **Mermaid CLI**:
+```bash
+npm install -g @mermaid-js/mermaid-cli
+mmdc -i diagram.mmd -o diagram.svg
