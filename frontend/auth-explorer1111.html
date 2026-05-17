@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth API Explorer | AuraShop DevTools</title>
+    
+    <!-- External Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'monospace'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: { 850: '#1e293b', 900: '#0f172a', 950: '#020617' },
+                        accent: { 500: '#6366f1', 600: '#4f46e5', glow: '#818cf8' }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/auth-explorer.css">
+</head>
+<body class="text-slate-300 font-sans min-h-screen flex flex-col">
+
+    <!-- Navigation Header -->
+    <nav class="glass-panel-strong sticky top-0 z-50 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-3">
+                    <a href="index.html" class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 hover:scale-110 transition-transform">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="text-lg font-bold text-white tracking-tight">Auth<span class="text-indigo-400">Explorer</span></h1>
+                        <p class="text-xs text-slate-500 font-mono">Simulated API Sandbox</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Global Auth Status -->
+                    <div id="authStatus" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800/50 border border-slate-700">
+                        <span class="w-2 h-2 rounded-full bg-slate-500" id="statusDot"></span>
+                        <span class="text-xs font-mono text-slate-400" id="statusText">Unauthenticated</span>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <button onclick="app.openDashboard()" id="dashboardBtn" class="hidden px-3 py-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-400/10 rounded-md transition-colors">
+                        Open Dashboard
+                    </button>
+                    <button onclick="app.logout()" id="logoutBtn" class="hidden px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-md transition-colors">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        <!-- Hero Branding -->
+        <div class="mb-10 text-center relative">
+            <div class="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
+                <div class="w-96 h-96 bg-indigo-600 rounded-full blur-3xl animate-pulse-slow"></div>
+            </div>
+            <h2 class="relative text-4xl font-bold text-white mb-3 tracking-tight">
+                Authentication <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">API Simulator</span>
+            </h2>
+            <p class="relative text-slate-400 max-w-2xl mx-auto text-lg">
+                Debug and explore secure JWT authentication flows in a sandboxed environment.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left Panel: Endpoint Testing -->
+            <div class="lg:col-span-2 space-y-4">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Available Endpoints</h3>
+                    <button onclick="app.clearLogs()" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">Clear Logs</button>
+                </div>
+
+                <!-- 1. Register Endpoint -->
+                <div class="endpoint-card glass-panel rounded-xl p-5 group">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="method-post px-2 py-1 rounded text-xs font-bold font-mono">POST</span>
+                            <code class="text-sm font-mono text-slate-200">/register</code>
+                        </div>
+                        <span class="text-xs text-slate-500">Create new account</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        <input type="text" id="reg-name" placeholder="Full Name" class="bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none">
+                        <input type="email" id="reg-email" placeholder="Email Address" class="bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none">
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        <input type="password" id="reg-password" placeholder="Password (min 8 chars)" class="bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none">
+                        <input type="password" id="reg-confirm" placeholder="Confirm Password" class="bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none">
+                    </div>
+                    <button onclick="app.register()" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg transition-all shadow-lg shadow-indigo-500/20">
+                        Execute Request
+                    </button>
+                </div>
+
+                <!-- 2. Login Endpoint -->
+                <div class="endpoint-card glass-panel rounded-xl p-5 group">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="method-post px-2 py-1 rounded text-xs font-bold font-mono">POST</span>
+                            <code class="text-sm font-mono text-slate-200">/login</code>
+                        </div>
+                        <span class="text-xs text-slate-500">Authenticate & receive tokens</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        <input type="email" id="login-email" placeholder="Email Address" class="bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none">
+                        <input type="password" id="login-password" placeholder="Password" class="bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none">
+                    </div>
+                    <button onclick="app.login()" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg transition-all shadow-lg shadow-indigo-500/20">
+                        Execute Request
+                    </button>
+                </div>
+
+                <!-- 3. OAuth Section -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="endpoint-card glass-panel rounded-xl p-5">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="method-post px-2 py-1 rounded text-xs font-bold font-mono">POST</span>
+                            <code class="text-sm font-mono text-slate-200">/google</code>
+                        </div>
+                        <button onclick="app.oauth('google')" class="w-full flex items-center justify-center space-x-2 px-4 py-2.5 bg-white hover:bg-gray-100 text-slate-900 text-sm font-bold rounded-lg transition-all">
+                            <span>Sign in with Google</span>
+                        </button>
+                    </div>
+                    <div class="endpoint-card glass-panel rounded-xl p-5">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="method-post px-2 py-1 rounded text-xs font-bold font-mono">POST</span>
+                            <code class="text-sm font-mono text-slate-200">/facebook</code>
+                        </div>
+                        <button onclick="app.oauth('facebook')" class="w-full flex items-center justify-center space-x-2 px-4 py-2.5 bg-[#1877F2] hover:bg-[#166fe5] text-white text-sm font-bold rounded-lg transition-all">
+                            <span>Sign in with Facebook</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. Token & Security Operations -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="endpoint-card glass-panel rounded-xl p-5">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="method-post px-2 py-1 rounded text-xs font-bold font-mono">POST</span>
+                            <code class="text-sm font-mono text-slate-200">/refresh</code>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-3">Refresh access token</p>
+                        <button onclick="app.refresh()" class="w-full px-3 py-2 bg-slate-700 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg transition-all">
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="endpoint-card glass-panel rounded-xl p-5">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="method-post px-2 py-1 rounded text-xs font-bold font-mono">POST</span>
+                            <code class="text-sm font-mono text-slate-200">/logout</code>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-3">Invalidate session</p>
+                        <button onclick="app.logout()" class="w-full px-3 py-2 bg-slate-700 hover:bg-red-600/80 text-white text-xs font-bold rounded-lg transition-all">
+                            Logout
+                        </button>
+                    </div>
+                    <div class="endpoint-card glass-panel rounded-xl p-5">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <span class="method-post px-2 py-1 rounded text-xs font-bold font-mono">POST</span>
+                            <code class="text-sm font-mono text-slate-200">/verify</code>
+                        </div>
+                        <input type="text" id="verify-otp" placeholder="OTP" maxlength="6" class="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white text-center font-mono mb-3">
+                        <button onclick="app.verifyEmail()" class="w-full px-3 py-2 bg-slate-700 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg transition-all">
+                            Verify
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 5. Password Management -->
+                <div class="endpoint-card glass-panel rounded-xl p-5">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <span class="method-post px-2 py-1 rounded text-xs font-bold font-mono">POST</span>
+                        <code class="text-sm font-mono text-slate-200">/forgot-password</code>
+                    </div>
+                    <div class="flex gap-3">
+                        <input type="email" id="forgot-email" placeholder="Recovery Email" class="flex-1 bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white outline-none">
+                        <button onclick="app.forgotPassword()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold rounded-lg transition-colors">
+                            Send Link
+                        </button>
+                    </div>
+                </div>
+
+                <div class="endpoint-card glass-panel rounded-xl p-5">
+                    <div class="flex items-center space-x-3 mb-3">
+                        <span class="method-post px-2 py-1 rounded text-xs font-bold font-mono">POST</span>
+                        <code class="text-sm font-mono text-slate-200">/reset-password</code>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <input type="text" id="reset-token" placeholder="Token" class="bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono">
+                        <input type="password" id="reset-password" placeholder="New Password" class="bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                        <button onclick="app.resetPassword()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold rounded-lg transition-colors">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Global State & Logs -->
+            <div class="lg:col-span-1 space-y-6">
+                
+                <!-- Token Inspector -->
+                <div class="glass-panel rounded-xl p-5 border-l-4 border-l-indigo-500">
+                    <h3 class="text-sm font-bold text-white mb-3 flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                        Token Inspector
+                    </h3>
+                    <div class="space-y-3 text-xs font-mono">
+                        <div>
+                            <span class="text-slate-500 block mb-1">Access Token</span>
+                            <div id="tokenDisplay" class="bg-slate-950 rounded p-2 text-slate-400 break-all border border-slate-800">None</div>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block mb-1">Refresh Token</span>
+                            <div id="refreshDisplay" class="bg-slate-950 rounded p-2 text-slate-400 break-all border border-slate-800">None</div>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+                            <span class="text-slate-500">Expires In</span>
+                            <span id="expiresDisplay" class="text-indigo-400 font-bold">--:--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Log -->
+                <div class="glass-panel rounded-xl p-5 flex flex-col h-[500px]">
+                    <h3 class="text-sm font-bold text-white mb-3 flex items-center justify-between">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            Request Log
+                        </span>
+                        <span class="text-xs text-slate-500" id="logCount">0 entries</span>
+                    </h3>
+                    <div id="logContainer" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                        <div class="text-center text-slate-600 text-xs py-8 italic">Waiting for requests...</div>
+                    </div>
+                </div>
+
+                <!-- System Health -->
+                <div class="glass-panel rounded-xl p-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-500">Latency</span>
+                            <span class="text-emerald-400 font-mono" id="latencyDisplay">~300ms</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-500">Server Time</span>
+                            <span class="text-indigo-400 font-mono" id="serverTime">--:--:--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Dashboard Modal -->
+    <div id="dashboardModal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="app.closeDashboard()"></div>
+        <div class="absolute inset-4 md:inset-10 glass-panel-strong rounded-2xl overflow-hidden flex flex-col shadow-2xl border border-slate-700">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                <h2 class="text-xl font-bold text-white">Secure Dashboard</h2>
+                <button onclick="app.closeDashboard()" class="p-2 hover:bg-slate-800 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="flex-1 p-6 overflow-y-auto" id="dashboardContent"></div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-300 z-[200]">
+        <div class="glass-panel-strong px-4 py-3 rounded-lg shadow-xl border border-slate-700 flex items-center space-x-3">
+            <span id="toastMessage" class="text-sm font-bold text-white"></span>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="js/auth-explorer.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+node_modules/
+db password.txt
+how to seeer.txt
+.env
+uploads/
+.gemini/
+brain/
+scratch/
+artifacts/
+.vscode/
+package-lock.json
