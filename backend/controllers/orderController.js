@@ -93,30 +93,38 @@ const createOrder = async (req, res) => {
 
         const orderId = uuidv4();
         
+        // Determine statuses based on payment method
+        let cleanPaymentMethod = (payment_method || 'cod').toLowerCase();
+        let paymentStatus = 'pending';
+        let orderStatus = 'pending';
+
+        if (cleanPaymentMethod === 'card' || cleanPaymentMethod === 'credit card' || cleanPaymentMethod === 'credit_card') {
+            paymentStatus = 'paid';
+            orderStatus = 'confirmed';
+        }
+
         // Insert order
         await pool.request()
             .input('order_id', sql.UniqueIdentifier, orderId)
             .input('customer_id', sql.UniqueIdentifier, userId)
             .input('address_id', sql.UniqueIdentifier, finalAddressId)
+            .input('order_status', sql.NVarChar, orderStatus)
             .input('total_amount', sql.Decimal, subtotal)
             .input('final_amount', sql.Decimal, finalAmount)
-            .query('INSERT INTO orders (order_id, customer_id, address_id, total_amount, final_amount) VALUES (@order_id, @customer_id, @address_id, @total_amount, @final_amount)');
+            .query('INSERT INTO orders (order_id, customer_id, address_id, order_status, total_amount, final_amount) VALUES (@order_id, @customer_id, @address_id, @order_status, @total_amount, @final_amount)');
 
         // Insert payment record
         const paymentId = uuidv4();
-        let cleanPaymentMethod = payment_method || 'cod';
-        let paymentStatus = (cleanPaymentMethod === 'cod' || cleanPaymentMethod === 'COD') ? 'pending' : 'paid';
-        
         const transactionRef = 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 
         await pool.request()
             .input('payment_id', sql.UniqueIdentifier, paymentId)
             .input('order_id', sql.UniqueIdentifier, orderId)
-            .input('payment_method', sql.NVarChar, cleanPaymentMethod)
+            .input('payment_method', sql.NVarChar, payment_method || 'COD')
             .input('payment_status', sql.NVarChar, paymentStatus)
             .input('amount', sql.Decimal, finalAmount)
             .input('transaction_ref', sql.NVarChar, transactionRef)
-            .query('INSERT INTO payments (payment_id, order_id, payment_method, payment_status, amount, transaction_ref, paid_at) VALUES (@payment_id, @order_id, @payment_method, @payment_status, @amount, @transaction_ref, GETDATE())');
+            .query('INSERT INTO payments (payment_id, order_id, payment_method, payment_status, amount, transaction_ref, paid_at) VALUES (@payment_id, @order_id, @payment_method, @payment_status, @amount, @transaction_ref, ' + (paymentStatus === 'paid' ? 'GETDATE()' : 'NULL') + ')');
 
         // Move items to order_items
         for (const item of itemsResult.recordset) {
