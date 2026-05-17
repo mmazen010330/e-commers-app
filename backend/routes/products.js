@@ -9,12 +9,6 @@ router.get('/', productController.getProducts);
 // POST /api/products - Create product (Admin & Seller role)
 router.post('/', verifyToken, checkRole(['admin', 'seller']), productController.createProduct);
 
-// GET /api/products/:slug - Get single product detail
-router.get('/:slug', productController.getProductBySlug);
-
-// GET /api/products/:id/related - Get related products
-router.get('/:id/related', productController.getRelatedProducts);
-
 // GET /api/categories - Get nested category tree
 router.get('/categories', productController.getCategories);
 
@@ -26,5 +20,11 @@ router.get('/search', productController.searchProducts);
 
 // GET /api/search/suggest - Autocomplete suggestions
 router.get('/search/suggest', productController.getSearchSuggestions);
+
+// GET /api/products/:slug - Get single product detail
+router.get('/:slug', productController.getProductBySlug);
+
+// GET /api/products/:id/related - Get related products
+router.get('/:id/related', productController.getRelatedProducts);
 
 module.exports = router;
