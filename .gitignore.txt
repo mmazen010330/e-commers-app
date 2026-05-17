@@ -1,3 +1,5 @@
 node_modules
+db password.txt
+how to seeer.txt
 .env
 uploads/

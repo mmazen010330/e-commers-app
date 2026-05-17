@@ -589,7 +589,15 @@ const App = {
                                         <td style="padding: 1.5rem 0; font-family: monospace; font-size: 0.9rem; color: var(--primary); cursor: pointer; text-decoration: underline;" onclick="window.App.showOrderDetail('${o.order_id}')">${o.order_id.substring(0, 8)}...</td>
                                         <td style="padding: 1.5rem 0;">${new Date(o.created_at).toLocaleDateString()}</td>
                                         <td style="padding: 1.5rem 0; font-weight: bold;">$${Number(o.final_amount).toFixed(2)}</td>
-                                        <td style="padding: 1.5rem 0;"><span style="background: rgba(0, 200, 80, 0.1); color: rgb(0, 220, 100); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">Completed</span></td>
+                                        <td style="padding: 1.5rem 0;">
+                                            ${(o.order_status || 'pending') === 'pending' ? `
+                                                <span style="background: rgba(255, 170, 0, 0.1); color: rgb(255, 185, 0); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: capitalize;">Pending</span>
+                                            ` : (o.order_status || '').toLowerCase() === 'cancelled' || (o.order_status || '').toLowerCase() === 'refunded' ? `
+                                                <span style="background: rgba(255, 75, 75, 0.1); color: rgb(255, 90, 90); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: capitalize;">${o.order_status}</span>
+                                            ` : `
+                                                <span style="background: rgba(0, 200, 80, 0.1); color: rgb(0, 220, 100); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: capitalize;">${o.order_status}</span>
+                                            `}
+                                        </td>
                                     </tr>
                                 `).join('')}
                             </tbody>
