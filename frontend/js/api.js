@@ -21,6 +21,9 @@ const MOCK_DATA = {
     ]
 };
 
+localStorage.removeItem('cache_/products/categories');
+localStorage.removeItem('cache_categories');
+
 const API = {
     async request(endpoint, options = {}) {
         const url = `${CONFIG.API_BASE_URL}${endpoint}`;
@@ -80,14 +83,17 @@ const API = {
             return JSON.parse(cached);
         }
 
+        if (endpoint.includes('/categories') || endpoint.includes('categories')) {
+            return { success: true, data: MOCK_DATA.categories };
+        }
+
         if (endpoint.includes('/products')) {
-            if (endpoint.includes('/products/')) {
+            if (endpoint.includes('/products/') && !endpoint.includes('/products/categories')) {
                 const slug = endpoint.split('/').pop();
                 return { success: true, data: { ...MOCK_DATA.products.find(p => p.slug === slug), images: [{image_url: MOCK_DATA.products.find(p => p.slug === slug).primary_image}], variants: [] } };
             }
             return { success: true, data: MOCK_DATA.products };
         }
-        if (endpoint.includes('/categories')) return { success: true, data: MOCK_DATA.categories };
         if (endpoint.includes('/search')) return { success: true, data: MOCK_DATA.products };
         if (endpoint.includes('/cart')) return { success: true, data: { items: [], total_amount: 0 } };
         
