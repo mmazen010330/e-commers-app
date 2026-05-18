@@ -1,6 +1,31 @@
 const { sql, poolPromise } = require('../database/db');
 const { v4: uuidv4 } = require('uuid');
 
+const extractDirectImageUrl = (url) => {
+    if (!url) return url;
+    try {
+        const parsedUrl = new URL(url);
+        // Check for Bing Images Detail URL
+        if (parsedUrl.hostname.includes('bing.com') && parsedUrl.pathname.includes('/images/')) {
+            const mediaUrl = parsedUrl.searchParams.get('mediaurl');
+            if (mediaUrl) return decodeURIComponent(mediaUrl);
+        }
+        // Check for Google Images URL
+        if (parsedUrl.hostname.includes('google.') && parsedUrl.pathname.includes('/imgres')) {
+            const imgUrl = parsedUrl.searchParams.get('imgurl');
+            if (imgUrl) return decodeURIComponent(imgUrl);
+        }
+        // Check for Google Search redirect link
+        if (parsedUrl.hostname.includes('google.') && parsedUrl.pathname.includes('/url')) {
+            const qUrl = parsedUrl.searchParams.get('url') || parsedUrl.searchParams.get('q');
+            if (qUrl) return extractDirectImageUrl(decodeURIComponent(qUrl));
+        }
+    } catch (e) {
+        // Not a valid URL or parsing failed
+    }
+    return url;
+};
+
 const getProducts = async (req, res) => {
     try {
         const { category, minPrice, maxPrice, brand, page = 1, limit = 10 } = req.query;
@@ -122,7 +147,9 @@ const getSearchSuggestions = async (req, res) => {
 
 const createProduct = async (req, res) => {
     try {
-        const { name, sku, slug, description, base_price, stock_quantity, brand, weight_kg, category_id, image_url } = req.body;
+        const { name, sku, slug, description, base_price, stock_quantity, brand, weight_kg, category_id } = req.body;
+        const rawImageUrl = req.body.image_url;
+        const image_url = extractDirectImageUrl(rawImageUrl);
         
         if (!name || !base_price || !category_id) {
             return res.status(400).json({ success: false, message: 'Name, Base Price and Category ID are required.' });
@@ -132,7 +159,7 @@ const createProduct = async (req, res) => {
         const productId = uuidv4();
         
         // Auto-resolve seller_id: use first seller if user is admin or seller
-        let sellerId = req.user ? req.user.userId : null;
+        let sellerId = req.user ? req.user.id : null;
         if (req.user && (req.user.role === 'admin' || req.user.role === 'customer')) {
             const sellerRes = await pool.request().query('SELECT TOP 1 seller_id FROM sellers');
             if (sellerRes.recordset.length > 0) {
@@ -152,6 +179,17 @@ const createProduct = async (req, res) => {
         }
 
         const resolvedSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        // Ensure slug is unique: if a product with the same slug exists, append a counter suffix
+        let uniqueSlug = resolvedSlug;
+        let slugCounter = 1;
+        while (true) {
+            const slugCheck = await pool.request()
+                .input('slug', sql.NVarChar, uniqueSlug)
+                .query('SELECT COUNT(1) AS cnt FROM products WHERE slug = @slug');
+            const exists = slugCheck.recordset[0] && slugCheck.recordset[0].cnt > 0;
+            if (!exists) break;
+            uniqueSlug = `${resolvedSlug}-${slugCounter++}`;
+        }
         const resolvedSku = sku || 'SKU-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 
         await pool.request()
@@ -160,7 +198,7 @@ const createProduct = async (req, res) => {
             .input('category_id', sql.UniqueIdentifier, category_id)
             .input('sku', sql.NVarChar, resolvedSku)
             .input('name', sql.NVarChar, name)
-            .input('slug', sql.NVarChar, resolvedSlug)
+            .input('slug', sql.NVarChar, uniqueSlug)
             .input('description', sql.NVarChar, description || null)
             .input('base_price', sql.Decimal, base_price)
             .input('stock_quantity', sql.Int, stock_quantity || 10)

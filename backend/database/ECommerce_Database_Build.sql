@@ -224,7 +224,7 @@ GO
 CREATE TABLE product_images (
     image_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     product_id UNIQUEIDENTIFIER NOT NULL,
-    image_url NVARCHAR(500) NOT NULL,
+    image_url NVARCHAR(MAX) NOT NULL,
     alt_text NVARCHAR(255) NULL,
     is_primary BIT NOT NULL DEFAULT 0,
     sort_order INT NOT NULL DEFAULT 0,
@@ -488,7 +488,7 @@ GO
 CREATE INDEX idx_products_seller ON products(seller_id);
 CREATE INDEX idx_products_category ON products(category_id);
 CREATE INDEX idx_products_active ON products(is_active, created_at);
-CREATE FULLTEXT INDEX idx_products_search ON products(name);
+CREATE INDEX idx_products_search ON products(name);
 GO
 
 -- Product Images

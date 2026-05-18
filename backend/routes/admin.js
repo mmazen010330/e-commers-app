@@ -1,39 +1,47 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
+const offerController  = require('../controllers/offerController');
 const { verifyToken, checkRole } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 router.use(checkRole(['admin']));
 
-// GET /api/admin/dashboard - Get platform stats
+// ── Dashboard ──────────────────────────────────────────────────
 router.get('/dashboard', adminController.getDashboard);
 
-// GET /api/admin/users - List all users
-router.get('/users', adminController.getUsers);
+// ── Users ──────────────────────────────────────────────────────
+router.get('/users',               adminController.getUsers);
+router.put('/users/:id/role',      adminController.updateUserRole);
+router.put('/users/:id/suspend',   adminController.suspendUser);
 
-// PUT /api/admin/users/:id/role - Change user role
-router.put('/users/:id/role', adminController.updateUserRole);
+// ── Sellers ────────────────────────────────────────────────────
+router.get('/sellers/pending',         adminController.getPendingSellers);
+router.get('/sellers',                 adminController.getSellers);
+router.put('/sellers/:id/permissions', adminController.updateSellerPermissions);
+router.put('/sellers/:id/verify',      adminController.verifySeller);
+router.put('/sellers/:id/reject',      adminController.rejectSeller);
 
-// PUT /api/admin/users/:id/suspend - Suspend user
-router.put('/users/:id/suspend', adminController.suspendUser);
+// ── Products ───────────────────────────────────────────────────
+router.get('/products/pending',     adminController.getPendingProducts);
+router.get('/products',             adminController.getAllProducts);
+router.put('/products/:id/approve', adminController.approveProduct);
+router.post('/products',            adminController.addProduct);     // Admin direct add
+router.put('/products/:id',         adminController.editProduct);
+router.delete('/products/:id',      adminController.deleteProduct);
 
-// GET /api/admin/sellers/pending - Seller verification queue
-router.get('/sellers/pending', adminController.getPendingSellers);
+// ── Offers ─────────────────────────────────────────────────────
+router.get('/offers/pending',     offerController.getPendingOffers);
+router.get('/offers',             offerController.getAllOffers);
+router.put('/offers/:id/approve', offerController.approveOffer);
+router.put('/offers/:id/reject',  offerController.rejectOffer);
 
-// PUT /api/admin/sellers/:id/verify - Approve/reject seller
-router.put('/sellers/:id/verify', adminController.verifySeller);
-
-// GET /api/admin/coupons - List all coupons
-router.get('/coupons', adminController.getCoupons);
-
-// GET /api/admin/orders/pending - Get COD pending orders
-router.get('/orders/pending', adminController.getPendingCodOrders);
-
-// PUT /api/admin/orders/:id/confirm - Confirm COD order
-router.put('/orders/:id/confirm', adminController.confirmCodOrder);
-
-// POST /api/admin/coupons - Create coupon code
+// ── Coupons ────────────────────────────────────────────────────
+router.get('/coupons',  adminController.getCoupons);
 router.post('/coupons', adminController.createCoupon);
+
+// ── Orders ─────────────────────────────────────────────────────
+router.get('/orders/pending',    adminController.getPendingCodOrders);
+router.put('/orders/:id/confirm',adminController.confirmCodOrder);
 
 module.exports = router;

@@ -160,7 +160,7 @@ GO
 CREATE TABLE product_images (
     image_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     product_id UNIQUEIDENTIFIER NOT NULL,
-    image_url NVARCHAR(500) NOT NULL,
+    image_url NVARCHAR(MAX) NOT NULL,
     alt_text NVARCHAR(255) NULL,
     is_primary BIT NOT NULL DEFAULT 0,
     sort_order INT NOT NULL DEFAULT 0,
@@ -565,4 +565,93 @@ ORDER BY CASE WHEN p.category_id IS NULL THEN 0 ELSE 1 END, c.sort_order;
 GO
 
 PRINT '========== BUILD COMPLETE ==========';
+GO
+
+-- =====================================================
+-- MIGRATIONS (Appended — ALTER only, no drops)
+-- Run these after initial build to add new features.
+-- =====================================================
+
+-- 2026-05-17: Increase image_url length to accommodate long URLs
+ALTER TABLE product_images ALTER COLUMN image_url NVARCHAR(MAX) NOT NULL;
+GO
+
+-- 2026-05-17: Add seller permission controls
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('sellers') AND name = 'can_sell')
+    ALTER TABLE sellers ADD can_sell BIT NOT NULL DEFAULT 1;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('sellers') AND name = 'can_make_offers')
+    ALTER TABLE sellers ADD can_make_offers BIT NOT NULL DEFAULT 1;
+GO
+
+-- 2026-05-17: Add product offer and factory flags
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('products') AND name = 'is_offer')
+    ALTER TABLE products ADD is_offer BIT NOT NULL DEFAULT 0;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('products') AND name = 'is_factory')
+    ALTER TABLE products ADD is_factory BIT NOT NULL DEFAULT 0;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('products') AND name = 'offer_price')
+    ALTER TABLE products ADD offer_price DECIMAL(12,2) NULL;
+GO
+
+-- 2026-05-17: Add can_edit_products permission column to sellers
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('sellers') AND name = 'can_edit_products')
+    ALTER TABLE sellers ADD can_edit_products BIT NOT NULL DEFAULT 1;
+GO
+
+-- 2026-05-17: Seller Offers table (seller-submitted offers, admin must approve)
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'seller_offers')
+BEGIN
+    CREATE TABLE seller_offers (
+        offer_id       UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        product_id     UNIQUEIDENTIFIER NOT NULL,
+        seller_id      UNIQUEIDENTIFIER NOT NULL,
+        offer_title    NVARCHAR(255)    NOT NULL,
+        discount_type  NVARCHAR(20)     NOT NULL CHECK (discount_type IN ('percentage','fixed')),
+        discount_value DECIMAL(10,2)    NOT NULL,
+        offer_price    DECIMAL(12,2)    NULL,
+        start_date     DATETIME         NOT NULL,
+        end_date       DATETIME         NOT NULL,
+        status         NVARCHAR(20)     NOT NULL DEFAULT 'pending'
+                       CHECK (status IN ('pending','approved','rejected')),
+        admin_note     NVARCHAR(500)    NULL,
+        created_at     DATETIME         NOT NULL DEFAULT GETDATE(),
+        CONSTRAINT FK_soffer_prod FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
+        CONSTRAINT FK_soffer_sell FOREIGN KEY (seller_id)  REFERENCES sellers(seller_id)
+    );
+    PRINT 'seller_offers table created.';
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_soffer_seller')
+    CREATE INDEX idx_soffer_seller  ON seller_offers(seller_id);
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_soffer_product')
+    CREATE INDEX idx_soffer_product ON seller_offers(product_id);
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_soffer_status')
+    CREATE INDEX idx_soffer_status  ON seller_offers(status, created_at);
+GO
+
+-- 2026-05-17: Admin audit log
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'admin_actions')
+BEGIN
+    CREATE TABLE admin_actions (
+        action_id     UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        admin_user_id UNIQUEIDENTIFIER NOT NULL REFERENCES users(user_id),
+        target_type   NVARCHAR(30)     NOT NULL,
+        target_id     NVARCHAR(100)    NOT NULL,
+        action        NVARCHAR(30)     NOT NULL,
+        note          NVARCHAR(500)    NULL,
+        created_at    DATETIME         NOT NULL DEFAULT GETDATE()
+    );
+    PRINT 'admin_actions table created.';
+END
+GO
+
+PRINT 'Migrations applied successfully.';
 GO

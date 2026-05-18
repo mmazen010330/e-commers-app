@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel – AuraShop</title>
+    <meta
+      name="description"
+      content="AuraShop Admin Panel — manage sellers, products, offers and orders."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <!-- ══════════════ SIDEBAR ══════════════ -->
+    <nav class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">🛡️</span>
+        <span class="brand-text">AuraShop <em>Admin</em></span>
+      </div>
+
+      <ul class="nav-list">
+        <li>
+          <button class="nav-btn active" data-tab="dashboard">
+            <span class="nav-icon">📊</span> Dashboard
+          </button>
+        </li>
+
+        <li class="nav-section">SELLERS</li>
+        <li>
+          <button class="nav-btn" data-tab="sellers-pending">
+            <span class="nav-icon">⏳</span> Pending Sellers
+            <span class="badge-count" id="cnt-sellers">0</span>
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-tab="sellers-all">
+            <span class="nav-icon">👥</span> All Sellers
+          </button>
+        </li>
+
+        <li class="nav-section">PRODUCTS</li>
+        <li>
+          <button class="nav-btn" data-tab="products-pending">
+            <span class="nav-icon">🔔</span> Pending Products
+            <span class="badge-count" id="cnt-products">0</span>
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-tab="products-all">
+            <span class="nav-icon">📦</span> All Products
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-tab="add-product">
+            <span class="nav-icon">➕</span> Add Product
+          </button>
+        </li>
+
+        <li class="nav-section">OFFERS</li>
+        <li>
+          <button class="nav-btn" data-tab="offers-pending">
+            <span class="nav-icon">🏷️</span> Pending Offers
+            <span class="badge-count" id="cnt-offers">0</span>
+          </button>
+        </li>
+
+        <li class="nav-section">ORDERS</li>
+        <li>
+          <button class="nav-btn" data-tab="orders-pending">
+            <span class="nav-icon">🛒</span> Pending Orders
+          </button>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button class="logout-btn" id="logoutBtn">🚪 Logout</button>
+      </div>
+    </nav>
+
+    <!-- ══════════════ MAIN ══════════════ -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+        <div class="admin-info">
+          <div class="avatar">A</div>
+          <div>
+            <div class="admin-name" id="adminName">Admin</div>
+            <div class="admin-role">Super Admin</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Alert Banner -->
+      <div class="alert-banner hidden" id="alertBanner"></div>
+
+      <!-- ─── TAB: Dashboard ─── -->
+      <section class="tab-panel active" id="tab-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">👤</div>
+            <div class="stat-value" id="s-users">—</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🏪</div>
+            <div class="stat-value" id="s-sellers">—</div>
+            <div class="stat-label">Total Sellers</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-value" id="s-products">—</div>
+            <div class="stat-label">Total Products</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🛒</div>
+            <div class="stat-value" id="s-orders">—</div>
+            <div class="stat-label">Total Orders</div>
+          </div>
+          <div class="stat-card accent">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value" id="s-revenue">—</div>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+          <div class="stat-card warn">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-value" id="s-pend-sell">—</div>
+            <div class="stat-label">Pending Sellers</div>
+          </div>
+          <div class="stat-card warn">
+            <div class="stat-icon">🔔</div>
+            <div class="stat-value" id="s-pend-prod">—</div>
+            <div class="stat-label">Pending Products</div>
+          </div>
+          <div class="stat-card warn">
+            <div class="stat-icon">🏷️</div>
+            <div class="stat-value" id="s-pend-ofr">—</div>
+            <div class="stat-label">Pending Offers</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── TAB: Pending Sellers ─── -->
+      <section class="tab-panel" id="tab-sellers-pending">
+        <div class="panel-header">
+          <h2>Pending Seller Approvals</h2>
+          <button class="btn btn-ghost btn-sm" onclick="loadPendingSellers()">
+            ↻ Refresh
+          </button>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Business Name</th>
+                <th>Owner</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Rating</th>
+                <th>Registered</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pendingSellerBody">
+              <tr>
+                <td colspan="7" class="loading-row">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── TAB: All Sellers ─── -->
+      <section class="tab-panel" id="tab-sellers-all">
+        <div class="panel-header">
+          <h2>All Sellers</h2>
+          <button class="btn btn-ghost btn-sm" onclick="loadAllSellers()">
+            ↻ Refresh
+          </button>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Business Name</th>
+                <th>Owner</th>
+                <th>Status</th>
+                <th>Products</th>
+                <th>Rating</th>
+                <th>Can Sell</th>
+                <th>Can Offer</th>
+                <th>Can Edit</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="allSellerBody">
+              <tr>
+                <td colspan="9" class="loading-row">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── TAB: Pending Products ─── -->
+      <section class="tab-panel" id="tab-products-pending">
+        <div class="panel-header">
+          <h2>Pending Product Approvals</h2>
+          <button class="btn btn-ghost btn-sm" onclick="loadPendingProducts()">
+            ↻ Refresh
+          </button>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Product</th>
+                <th>Seller</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Type</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pendingProductBody">
+              <tr>
+                <td colspan="8" class="loading-row">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── TAB: All Products ─── -->
+      <section class="tab-panel" id="tab-products-all">
+        <div class="panel-header">
+          <h2>All Products</h2>
+          <div style="display: flex; gap: 10px">
+            <input
+              type="text"
+              id="productSearch"
+              class="search-input"
+              placeholder="Search by name…"
+              oninput="filterProducts()"
+            />
+            <button class="btn btn-ghost btn-sm" onclick="loadAllProducts()">
+              ↻ Refresh
+            </button>
+            <button
+              class="btn btn-primary btn-sm"
+              onclick="switchTab('add-product')"
+            >
+              + Add
+            </button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Product</th>
+                <th>Seller</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="allProductBody">
+              <tr>
+                <td colspan="9" class="loading-row">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── TAB: Admin Add Product ─── -->
+      <section class="tab-panel" id="tab-add-product">
+        <div class="form-card">
+          <h2>Add Product (Admin — Goes Live Immediately)</h2>
+          <form id="adminAddProductForm" class="product-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Product Name *</label>
+                <input
+                  type="text"
+                  id="a-prod-name"
+                  placeholder="Product name"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Brand</label>
+                <input type="text" id="a-prod-brand" placeholder="Brand name" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Base Price (SAR) *</label>
+                <input
+                  type="number"
+                  id="a-prod-price"
+                  min="0"
+                  step="0.01"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Stock Quantity *</label>
+                <input type="number" id="a-prod-stock" min="0" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Category *</label>
+                <select id="a-prod-category" required>
+                  <option value="">— Select Category —</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Assign to Seller *</label>
+                <select id="a-prod-seller" required>
+                  <option value="">— Select Seller —</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group full-width">
+              <label>Description</label>
+              <textarea
+                id="a-prod-desc"
+                rows="3"
+                placeholder="Product description…"
+              ></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label>Primary Image URL</label>
+              <input type="url" id="a-prod-image" placeholder="https://…" />
+            </div>
+            <div class="form-row toggles-row">
+              <label class="toggle-label">
+                <input
+                  type="checkbox"
+                  id="a-prod-isOffer"
+                  onchange="toggleAdminOfferPrice()"
+                />
+                <span class="toggle-switch"></span> Mark as Offer
+              </label>
+              <label class="toggle-label">
+                <input type="checkbox" id="a-prod-isFactory" />
+                <span class="toggle-switch"></span> Factory Product
+              </label>
+            </div>
+            <div
+              class="form-group full-width"
+              id="a-offerPriceGroup"
+              style="display: none"
+            >
+              <label>Offer Price (SAR)</label>
+              <input type="number" id="a-prod-offerPrice" min="0" step="0.01" />
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-lg">
+                🚀 Add Product (Live)
+              </button>
+              <button type="reset" class="btn btn-ghost">Clear</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ─── TAB: Pending Offers ─── -->
+      <section class="tab-panel" id="tab-offers-pending">
+        <div class="panel-header">
+          <h2>Pending Seller Offers</h2>
+          <button class="btn btn-ghost btn-sm" onclick="loadPendingOffers()">
+            ↻ Refresh
+          </button>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Offer Title</th>
+                <th>Product</th>
+                <th>Seller</th>
+                <th>Discount</th>
+                <th>Offer Price</th>
+                <th>Period</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pendingOfferBody">
+              <tr>
+                <td colspan="8" class="loading-row">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── TAB: Pending Orders ─── -->
+      <section class="tab-panel" id="tab-orders-pending">
+        <div class="panel-header">
+          <h2>Pending COD Orders</h2>
+          <button class="btn btn-ghost btn-sm" onclick="loadPendingOrders()">
+            ↻ Refresh
+          </button>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pendingOrderBody">
+              <tr>
+                <td colspan="7" class="loading-row">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- ══════════════ EDIT PRODUCT MODAL ══════════════ -->
+    <div class="modal-overlay" id="editProductModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Edit Product</h3>
+          <button class="modal-close" onclick="closeModal('editProductModal')">
+            ✕
+          </button>
+        </div>
+        <form id="editProductForm" class="product-form">
+          <input type="hidden" id="ep-id" />
+          <div class="form-row">
+            <div class="form-group">
+              <label>Name</label>
+              <input type="text" id="ep-name" required />
+            </div>
+            <div class="form-group">
+              <label>Brand</label>
+              <input type="text" id="ep-brand" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Price (SAR)</label>
+              <input type="number" id="ep-price" step="0.01" required />
+            </div>
+            <div class="form-group">
+              <label>Stock</label>
+              <input type="number" id="ep-stock" required />
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Description</label>
+            <textarea id="ep-desc" rows="3"></textarea>
+          </div>
+          <div class="form-group full-width">
+            <label>Image URL</label>
+            <input type="url" id="ep-image" />
+          </div>
+          <div class="form-row toggles-row">
+            <label class="toggle-label">
+              <input
+                type="checkbox"
+                id="ep-isOffer"
+                onchange="toggleEpOfferPrice()"
+              />
+              <span class="toggle-switch"></span> Is Offer
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="ep-isFactory" />
+              <span class="toggle-switch"></span> Is Factory
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="ep-isActive" />
+              <span class="toggle-switch"></span> Active / Live
+            </label>
+          </div>
+          <div
+            class="form-group full-width"
+            id="ep-offerPriceGroup"
+            style="display: none"
+          >
+            <label>Offer Price (SAR)</label>
+            <input type="number" id="ep-offerPrice" step="0.01" />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              💾 Save Changes
+            </button>
+            <button
+              type="button"
+              class="btn btn-ghost"
+              onclick="closeModal('editProductModal')"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ══════════════ REJECT OFFER MODAL ══════════════ -->
+    <div class="modal-overlay" id="rejectOfferModal">
+      <div class="modal" style="max-width: 420px">
+        <div class="modal-header">
+          <h3>Reject Offer</h3>
+          <button class="modal-close" onclick="closeModal('rejectOfferModal')">
+            ✕
+          </button>
+        </div>
+        <div class="form-group full-width">
+          <label>Rejection Note (sent to seller)</label>
+          <textarea
+            id="rejectNote"
+            rows="3"
+            placeholder="Reason for rejection…"
+            class="product-form"
+          ></textarea>
+        </div>
+        <div class="form-actions" style="margin-top: 16px">
+          <button class="btn btn-danger" id="confirmRejectBtn">
+            Reject Offer
+          </button>
+          <button
+            class="btn btn-ghost"
+            onclick="closeModal('rejectOfferModal')"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="admin.js"></script>
+  </body>
+</html>

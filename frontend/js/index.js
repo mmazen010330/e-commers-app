@@ -15,6 +15,31 @@ const fixImageUrl = (url) => {
     return 'http://localhost:5000' + cleanUrl;
 };
 
+const extractDirectImageUrl = (url) => {
+    if (!url) return url;
+    try {
+        const parsedUrl = new URL(url);
+        // Check for Bing Images Detail URL
+        if (parsedUrl.hostname.includes('bing.com') && parsedUrl.pathname.includes('/images/')) {
+            const mediaUrl = parsedUrl.searchParams.get('mediaurl');
+            if (mediaUrl) return decodeURIComponent(mediaUrl);
+        }
+        // Check for Google Images URL
+        if (parsedUrl.hostname.includes('google.') && parsedUrl.pathname.includes('/imgres')) {
+            const imgUrl = parsedUrl.searchParams.get('imgurl');
+            if (imgUrl) return decodeURIComponent(imgUrl);
+        }
+        // Check for Google Search redirect link
+        if (parsedUrl.hostname.includes('google.') && parsedUrl.pathname.includes('/url')) {
+            const qUrl = parsedUrl.searchParams.get('url') || parsedUrl.searchParams.get('q');
+            if (qUrl) return extractDirectImageUrl(decodeURIComponent(qUrl));
+        }
+    } catch (e) {
+        // Not a valid URL or parsing failed
+    }
+    return url;
+};
+
 const App = {
     /**
      * Application Entry Point
@@ -113,6 +138,16 @@ const App = {
                         return; 
                     }
                     await this.renderAdmin(main);
+                    break;
+                case 'seller':
+                    if (!Auth.isLoggedIn()) { window.location.hash = '#login'; return; }
+                    const sellerUser = Auth.getUser();
+                    if (!sellerUser || (sellerUser.role !== 'seller' && sellerUser.role !== 'admin')) { 
+                        alert('Access Denied: Seller accounts only.');
+                        window.location.hash = '#home'; 
+                        return; 
+                    }
+                    await this.renderSellerDashboard(main);
                     break;
                 default:
                     await this.renderHome(main);
@@ -1114,7 +1149,7 @@ const App = {
             const price = parseFloat(document.getElementById('prod-price').value);
             const stock = parseInt(document.getElementById('prod-stock').value);
             const categoryId = document.getElementById('prod-category').value;
-            const imageUrl = document.getElementById('prod-image').value;
+            const imageUrl = extractDirectImageUrl(document.getElementById('prod-image').value);
             const description = document.getElementById('prod-desc').value;
 
             try {

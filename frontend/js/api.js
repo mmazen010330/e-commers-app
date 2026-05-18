@@ -97,19 +97,6 @@ const API = {
         if (endpoint.includes('/search')) return { success: true, data: MOCK_DATA.products };
         if (endpoint.includes('/cart')) return { success: true, data: { items: [], total_amount: 0 } };
         
-        if (endpoint.includes('/auth/login')) {
-            return { 
-                success: true, 
-                data: { 
-                    accessToken: 'mock-token', 
-                    user: { full_name: 'Demo User', email: 'demo@aura.com' } 
-                } 
-            };
-        }
-        if (endpoint.includes('/auth/register')) {
-            return { success: true, message: 'Mock registration successful!' };
-        }
-        
         return { success: false, message: 'Backend connection failed. Please ensure the server is running.' };
     },
 
@@ -143,9 +130,34 @@ const API = {
         getOne: (id) => API.request(`/orders/${id}`)
     },
 
+    seller: {
+        getDashboard: () => API.request('/seller/dashboard'),
+        getProducts: () => API.request('/seller/products'),
+        createProduct: (data) => API.request('/seller/products', { method: 'POST', body: JSON.stringify(data) }),
+        updateProduct: (id, data) => API.request(`/seller/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+        deleteProduct: (id) => API.request(`/seller/products/${id}`, { method: 'DELETE' }),
+        getOrders: () => API.request('/seller/orders'),
+        updateOrderStatus: (id, status) => API.request(`/seller/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
+        getEarnings: () => API.request('/seller/earnings')
+    },
+
     admin: {
         getPendingCodOrders: () => API.request('/admin/orders/pending'),
-        confirmCodOrder: (id) => API.request(`/admin/orders/${id}/confirm`, { method: 'PUT' })
+        confirmCodOrder: (id) => API.request(`/admin/orders/${id}/confirm`, { method: 'PUT' }),
+        getSellers: () => API.request('/admin/sellers'),
+        getPendingSellers: () => API.request('/admin/sellers/pending'),
+        verifySeller: (id) => API.request(`/admin/sellers/${id}/verify`, { method: 'PUT' }),
+        rejectSeller: (id) => API.request(`/admin/sellers/${id}/reject`, { method: 'PUT' }),
+        updateSellerPermissions: (id, perms) => API.request(`/admin/sellers/${id}/permissions`, { method: 'PUT', body: JSON.stringify(perms) }),
+        getPendingProducts: () => API.request('/admin/products/pending'),
+        getAllProducts: () => API.request('/admin/products'),
+        addProduct: (data) => API.request('/admin/products', { method: 'POST', body: JSON.stringify(data) }),
+        approveProduct: (id) => API.request(`/admin/products/${id}/approve`, { method: 'PUT' }),
+        deleteProduct: (id) => API.request(`/admin/products/${id}`, { method: 'DELETE' }),
+        editProduct: (id, data) => API.request(`/admin/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+        getPendingOffers: () => API.request('/admin/offers/pending'),
+        approveOffer: (id) => API.request(`/admin/offers/${id}/approve`, { method: 'PUT' }),
+        rejectOffer: (id, note) => API.request(`/admin/offers/${id}/reject`, { method: 'PUT', body: JSON.stringify({ note }) })
     }
 };
 

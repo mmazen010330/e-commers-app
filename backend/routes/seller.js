@@ -1,33 +1,35 @@
 const express = require('express');
 const router = express.Router();
 const sellerController = require('../controllers/sellerController');
+const offerController  = require('../controllers/offerController');
 const { verifyToken, checkRole } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 router.use(checkRole(['seller']));
 
-// GET /api/seller/dashboard - Get seller stats
+// ── Dashboard ──────────────────────────────────────
 router.get('/dashboard', sellerController.getDashboard);
 
-// GET /api/seller/products - List seller products
-router.get('/products', sellerController.getProducts);
-
-// POST /api/seller/products - Create new product
-router.post('/products', sellerController.createProduct);
-
-// PUT /api/seller/products/:id - Update product
+// ── Products ───────────────────────────────────────
+router.get('/products',     sellerController.getProducts);
+router.post('/products',    sellerController.createProduct);
 router.put('/products/:id', sellerController.updateProduct);
-
-// DELETE /api/seller/products/:id - Delete product
 router.delete('/products/:id', sellerController.deleteProduct);
 
-// GET /api/seller/orders - List seller orders
-router.get('/orders', sellerController.getOrders);
+// ── Orders ─────────────────────────────────────────
+router.get('/orders',              sellerController.getOrders);
+router.put('/orders/:id/status',   sellerController.updateOrderStatus);
 
-// PUT /api/seller/orders/:id/status - Update fulfillment status
-router.put('/orders/:id/status', sellerController.updateOrderStatus);
-
-// GET /api/seller/earnings - View earnings and payouts
+// ── Earnings ───────────────────────────────────────
 router.get('/earnings', sellerController.getEarnings);
 
+// ── Offers ─────────────────────────────────────────
+// GET  /api/seller/offers         – list seller's own offers
+// POST /api/seller/offers         – submit a new offer (pending admin approval)
+// DELETE /api/seller/offers/:id   – withdraw a pending offer
+router.get('/offers',        offerController.getSellerOffers);
+router.post('/offers',       offerController.createOffer);
+router.delete('/offers/:id', offerController.deleteOffer);
+
 module.exports = router;
+

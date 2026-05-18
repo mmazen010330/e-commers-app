@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seller Dashboard – AuraShop</title>
+    <meta
+      name="description"
+      content="Manage your products, offers, and orders from your AuraShop seller dashboard."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="seller.css" />
+  </head>
+  <body>
+    <!-- ══════════════ SIDEBAR ══════════════ -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-text">AuraShop <em>Seller</em></span>
+      </div>
+
+      <ul class="nav-list">
+        <li>
+          <button class="nav-btn active" data-tab="overview" id="nav-overview">
+            <span class="nav-icon">📊</span> Overview
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-tab="products" id="nav-products">
+            <span class="nav-icon">📦</span> My Products
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-tab="add-product" id="nav-add-product">
+            <span class="nav-icon">➕</span> Add Product
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-tab="offers" id="nav-offers">
+            <span class="nav-icon">🏷️</span> My Offers
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-tab="add-offer" id="nav-add-offer">
+            <span class="nav-icon">🎁</span> New Offer
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-tab="orders" id="nav-orders">
+            <span class="nav-icon">🛒</span> Orders
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-tab="earnings" id="nav-earnings">
+            <span class="nav-icon">💰</span> Earnings
+          </button>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button class="logout-btn" id="logoutBtn">🚪 Logout</button>
+      </div>
+    </nav>
+
+    <!-- ══════════════ MAIN ══════════════ -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 class="page-title" id="pageTitle">Overview</h1>
+        </div>
+        <div class="topbar-right">
+          <div class="seller-info">
+            <div class="avatar" id="sellerAvatar">S</div>
+            <div>
+              <div class="seller-name" id="sellerName">Loading...</div>
+              <div class="seller-status" id="sellerStatus">—</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Alert Banner -->
+      <div class="alert-banner hidden" id="alertBanner"></div>
+
+      <!-- ─── TAB: Overview ─── -->
+      <section class="tab-panel active" id="tab-overview">
+        <div class="stats-grid">
+          <div class="stat-card" id="stat-products">
+            <div class="stat-icon">📦</div>
+            <div class="stat-value" id="stat-products-val">—</div>
+            <div class="stat-label">Total Products</div>
+          </div>
+          <div class="stat-card" id="stat-sales">
+            <div class="stat-icon">🛒</div>
+            <div class="stat-value" id="stat-sales-val">—</div>
+            <div class="stat-label">Total Orders</div>
+          </div>
+          <div class="stat-card" id="stat-earnings">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value" id="stat-earnings-val">—</div>
+            <div class="stat-label">Net Earnings</div>
+          </div>
+          <div class="stat-card" id="stat-verify">
+            <div class="stat-icon">🔰</div>
+            <div class="stat-value" id="stat-verify-val">—</div>
+            <div class="stat-label">Account Status</div>
+          </div>
+        </div>
+
+        <div class="permissions-card">
+          <h3>Your Permissions</h3>
+          <div class="perm-grid">
+            <div class="perm-item" id="perm-sell">
+              <span class="perm-dot"></span> Can Sell
+            </div>
+            <div class="perm-item" id="perm-offer">
+              <span class="perm-dot"></span> Can Make Offers
+            </div>
+            <div class="perm-item" id="perm-edit">
+              <span class="perm-dot"></span> Can Edit Products
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── TAB: My Products ─── -->
+      <section class="tab-panel" id="tab-products">
+        <div class="panel-header">
+          <h2>My Products</h2>
+          <button class="btn btn-primary" onclick="switchTab('add-product')">
+            + Add New Product
+          </button>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="productsTable">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productsBody">
+              <tr>
+                <td colspan="8" class="loading-row">Loading products…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── TAB: Add Product ─── -->
+      <section class="tab-panel" id="tab-add-product">
+        <div class="form-card">
+          <h2>Add New Product</h2>
+          <form id="addProductForm" class="product-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Product Name *</label>
+                <input
+                  type="text"
+                  id="prod-name"
+                  placeholder="e.g. Wireless Headphones"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Brand</label>
+                <input type="text" id="prod-brand" placeholder="e.g. Sony" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Base Price (SAR) *</label>
+                <input
+                  type="number"
+                  id="prod-price"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Stock Quantity *</label>
+                <input
+                  type="number"
+                  id="prod-stock"
+                  min="0"
+                  placeholder="0"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Category *</label>
+                <select id="prod-category" required>
+                  <option value="">— Select Category —</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Weight (kg)</label>
+                <input
+                  type="number"
+                  id="prod-weight"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Description</label>
+              <textarea
+                id="prod-desc"
+                rows="4"
+                placeholder="Describe your product…"
+              ></textarea>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Primary Image URL</label>
+              <input type="url" id="prod-image" placeholder="https://…" />
+            </div>
+
+            <div class="form-row toggles-row">
+              <label class="toggle-label">
+                <input
+                  type="checkbox"
+                  id="prod-isOffer"
+                  onchange="toggleOfferPrice()"
+                />
+                <span class="toggle-switch"></span>
+                Mark as Offer / Sale
+              </label>
+              <label class="toggle-label">
+                <input type="checkbox" id="prod-isFactory" />
+                <span class="toggle-switch"></span>
+                Factory / Wholesale Product
+              </label>
+            </div>
+
+            <div
+              class="form-group full-width"
+              id="offerPriceGroup"
+              style="display: none"
+            >
+              <label>Offer Price (SAR)</label>
+              <input
+                type="number"
+                id="prod-offerPrice"
+                min="0"
+                step="0.01"
+                placeholder="Special offer price"
+              />
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-lg">
+                🚀 Submit Product
+              </button>
+              <button type="reset" class="btn btn-ghost">Clear</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ─── TAB: My Offers ─── -->
+      <section class="tab-panel" id="tab-offers">
+        <div class="panel-header">
+          <h2>My Offers</h2>
+          <button class="btn btn-primary" onclick="switchTab('add-offer')">
+            + New Offer
+          </button>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="offersTable">
+            <thead>
+              <tr>
+                <th>Offer Title</th>
+                <th>Product</th>
+                <th>Discount</th>
+                <th>Offer Price</th>
+                <th>Period</th>
+                <th>Status</th>
+                <th>Note</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="offersBody">
+              <tr>
+                <td colspan="8" class="loading-row">Loading offers…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── TAB: New Offer ─── -->
+      <section class="tab-panel" id="tab-add-offer">
+        <div class="form-card">
+          <h2>Submit a New Offer</h2>
+          <form id="addOfferForm" class="product-form">
+            <div class="form-group full-width">
+              <label>Offer Title *</label>
+              <input
+                type="text"
+                id="offer-title"
+                placeholder="e.g. Ramadan Sale — 20% Off"
+                required
+              />
+            </div>
+
+            <div class="form-group full-width">
+              <label>Product *</label>
+              <select id="offer-product" required>
+                <option value="">— Select your product —</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Discount Type *</label>
+                <select id="offer-discType" required>
+                  <option value="percentage">Percentage (%)</option>
+                  <option value="fixed">Fixed Amount (SAR)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Discount Value *</label>
+                <input
+                  type="number"
+                  id="offer-discValue"
+                  min="0.01"
+                  step="0.01"
+                  placeholder="e.g. 15"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Special Offer Price (SAR) — optional override</label>
+              <input
+                type="number"
+                id="offer-price"
+                min="0"
+                step="0.01"
+                placeholder="Leave blank to auto-calculate"
+              />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Start Date *</label>
+                <input type="datetime-local" id="offer-start" required />
+              </div>
+              <div class="form-group">
+                <label>End Date *</label>
+                <input type="datetime-local" id="offer-end" required />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-lg">
+                🏷️ Submit Offer for Approval
+              </button>
+              <button type="reset" class="btn btn-ghost">Clear</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ─── TAB: Orders ─── -->
+      <section class="tab-panel" id="tab-orders">
+        <h2>My Orders</h2>
+        <div class="table-wrapper">
+          <table class="data-table" id="ordersTable">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Order ID</th>
+                <th>Qty</th>
+                <th>Total</th>
+                <th>Order Status</th>
+                <th>Fulfillment</th>
+                <th>Date</th>
+                <th>Update</th>
+              </tr>
+            </thead>
+            <tbody id="ordersBody">
+              <tr>
+                <td colspan="8" class="loading-row">Loading orders…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ─── TAB: Earnings ─── -->
+      <section class="tab-panel" id="tab-earnings">
+        <h2>Earnings Summary</h2>
+        <div class="stats-grid earnings-grid">
+          <div class="stat-card green">
+            <div class="stat-icon">💵</div>
+            <div class="stat-value" id="earn-revenue">—</div>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-icon">🏛️</div>
+            <div class="stat-value" id="earn-commission">—</div>
+            <div class="stat-label">Platform Commission</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-icon">🏦</div>
+            <div class="stat-value" id="earn-net">—</div>
+            <div class="stat-label">Your Net Earnings</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ══════════════ EDIT PRODUCT MODAL ══════════════ -->
+    <div class="modal-overlay" id="editModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Edit Product</h3>
+          <button class="modal-close" onclick="closeModal('editModal')">
+            ✕
+          </button>
+        </div>
+        <form id="editProductForm" class="product-form">
+          <input type="hidden" id="edit-product-id" />
+          <div class="form-row">
+            <div class="form-group">
+              <label>Name</label>
+              <input type="text" id="edit-name" required />
+            </div>
+            <div class="form-group">
+              <label>Brand</label>
+              <input type="text" id="edit-brand" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Base Price (SAR)</label>
+              <input type="number" id="edit-price" step="0.01" required />
+            </div>
+            <div class="form-group">
+              <label>Stock</label>
+              <input type="number" id="edit-stock" required />
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Description</label>
+            <textarea id="edit-desc" rows="3"></textarea>
+          </div>
+          <div class="form-group full-width">
+            <label>Image URL</label>
+            <input type="url" id="edit-image" />
+          </div>
+          <div class="form-row toggles-row">
+            <label class="toggle-label">
+              <input
+                type="checkbox"
+                id="edit-isOffer"
+                onchange="toggleEditOfferPrice()"
+              />
+              <span class="toggle-switch"></span> Is Offer
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="edit-isFactory" />
+              <span class="toggle-switch"></span> Is Factory
+            </label>
+          </div>
+          <div
+            class="form-group full-width"
+            id="editOfferPriceGroup"
+            style="display: none"
+          >
+            <label>Offer Price (SAR)</label>
+            <input type="number" id="edit-offerPrice" step="0.01" />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              💾 Save Changes
+            </button>
+            <button
+              type="button"
+              class="btn btn-ghost"
+              onclick="closeModal('editModal')"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="seller.js"></script>
+  </body>
+</html>
